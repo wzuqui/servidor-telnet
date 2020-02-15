@@ -8,6 +8,7 @@ re-utilizar como um projeto no nuget.
 ## Tarefas (funcionalidades básicas)
     [x] Criar readme
     [x] Criar projeto de TDD
+    [x] Refactor básico de encapsulamento
     [ ] Iniciar implementação do primeiro teste
 
 ## Tarefas (funcionalidades básicas)
@@ -22,8 +23,12 @@ re-utilizar como um projeto no nuget.
     [ ] Mover SPRINTS
     [ ] Mover tarefas
     [ ] Não trabalhar mas a branch master
+    [ ] Organizar nome de classes
+
 
 ## Tarefas SPRINT 3 (restruturação do projeto em bibliotecas)
     [ ] Ramificar o projeto em bibliotecas reutilizáveis
     [ ] Criar versionamento com tags
     [ ] Criar pacotes nuget
+    [ ] Organizar nome de classes
+    [ ] Publicar nuget

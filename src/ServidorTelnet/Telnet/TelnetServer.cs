@@ -68,7 +68,7 @@ namespace ServidorTelnet.Telnet
 
             cliente.BemVindo();
 
-            while (cliente.Connected)
+            while (cliente.Conectado)
             {
                 foreach (var comando in cliente.LerComando())
                     if (!string.IsNullOrWhiteSpace(comando))

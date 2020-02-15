@@ -1,100 +1,110 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using ServidorTelnet.Extensions;
+
+#pragma warning disable 162
 
 namespace ServidorTelnet.Telnet
 {
     public abstract class Telnet
     {
         private readonly Encoding _codificacao = Encoding.ASCII;
+        private const EolTipos EOL = EolTipos.CRLF;
+        protected bool Negociado { get; private set; }
 
-        private const byte CR = 13;
-        private const byte LF = 10;
-        private const byte NUL = 0;
-
-        public enum EOLType
+        private enum EolTipos : byte
         {
-            CRLF = 0,
-            CRNUL = 1,
-            LF = 2
+            NUL = 0,
+            CR = 13,
+            LF = 10,
+            CRNUL = CR,
+            CRLF = CR & LF
+        }
+        private enum Verbos
+        {
+            DESCONHECIDO = -1,
+            SGA = 3,
+            WILL = 251,
+            WONT = 252,
+            DO = 253,
+            DONT = 254,
+            IAC = 255
         }
 
-        public EOLType EOL = EOLType.CRLF;
-
-        // -----------------------------------------------------------------------------------------------------------------
-
-        protected bool Escrever(NetworkStream stream, byte[] cmd)
-        {
-            if (stream == null) return false;
-            if (!stream.CanWrite) return false;
-            try
-            {
-                stream.Write(cmd, 0, cmd.Length);
-                stream.Flush();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        protected bool Escrever(NetworkStream networkStream, string mensagem, bool quebraLinha = true)
+        protected void Escrever(NetworkStream networkStream, string mensagem, bool quebraLinha = true)
         {
             if (quebraLinha)
-                if (!EscreverEol(networkStream)) return false;
-            return Escrever(networkStream, _codificacao.GetBytes(mensagem.Replace("\0xFF", "\0xFF\0xFF")));
-        }
-        private bool EscreverEol(NetworkStream stream)
-        {
-            switch (EOL)
-            {
-                case EOLType.CRLF:
-                    return Escrever(stream, new byte[] { CR, LF });
-                case EOLType.CRNUL:
-                    return Escrever(stream, new byte[] { CR, NUL });
-                case EOLType.LF:
-                    return Escrever(stream, new byte[] { LF });
-                default:
-                    return false;
-            }
+                _escreverQuebraLinha(networkStream);
+            _escreverBytes(networkStream, _codificacao.GetBytes(mensagem.Replace("\0xFF", "\0xFF\0xFF")));
         }
 
-
-        // -----------------------------------------------------------------------------------------------------------------
-
-        protected string[] Ler(NetworkStream stream, Cliente cliente)
+        protected IEnumerable<string> Ler(NetworkStream stream)
         {
             var stringBuilder = new StringBuilder();
             while (stream != null && (stream.CanRead))
             {
-                HandShaking(stream, stringBuilder, cliente);
+                HandShaking(stream, stringBuilder);
 
                 var comandos = stringBuilder.ToString();
-                if (comandos.Contains((char)CR, (char)LF, '\r', '\n', '>'))
-                {
-                    var linhas = comandos.Split(new char[] { (char)CR, (char)LF, (char)NUL, '\r', '\n', '>' }, StringSplitOptions.RemoveEmptyEntries);
-                    return (linhas.Length > 0) ? linhas : new[] { "" };
-                }
+                if (!comandos.Contains((char) EolTipos.CR, (char) EolTipos.LF, '\r', '\n', '>')) continue;
+
+                var linhas =
+                    comandos.Split(new[] {(char) EolTipos.CR, (char) EolTipos.LF, (char) EolTipos.NUL, '\r', '\n', '>'},
+                        StringSplitOptions.RemoveEmptyEntries);
+                return linhas.Length > 0 ? linhas : new[] {string.Empty};
             }
+
             return null;
         }
 
-        void HandShaking(NetworkStream stream, StringBuilder stringBuilder, Cliente cliente)
+        private void _escreverBytes(Stream stream, byte[] cmd)
+        {
+            if (stream == null) return;
+            if (!stream.CanWrite) return;
+            try
+            {
+                stream.Write(cmd, 0, cmd.Length);
+                stream.Flush();
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        private void _escreverQuebraLinha(Stream stream)
+        {
+            switch (EOL)
+            {
+                case EolTipos.CRLF:
+                    _escreverBytes(stream, new[] {(byte) EolTipos.CR, (byte) EolTipos.LF});
+                    break;
+                case EolTipos.CRNUL:
+                    _escreverBytes(stream, new[] {(byte) EolTipos.CR, (byte) EolTipos.NUL});
+                    break;
+                case EolTipos.LF:
+                    _escreverBytes(stream, new[] {(byte) EolTipos.LF});
+                    break;
+            }
+        }
+
+        private void HandShaking(NetworkStream stream, StringBuilder stringBuilder)
         {
             do
             {
                 while (stream.DataAvailable)
                 {
-                    var entrada = (Verbos)stream.ReadByte();
-                    switch (entrada)
+                    var token = (Verbos) stream.ReadByte();
+                    switch (token)
                     {
                         case Verbos.DESCONHECIDO:
                             break;
                         case Verbos.IAC:
-                            cliente.PuTTy = true;
-                            var verbo = (Verbos)stream.ReadByte();
+                            Negociado = true;
+                            var verbo = (Verbos) stream.ReadByte();
                             switch (verbo)
                             {
                                 case Verbos.DESCONHECIDO:
@@ -106,73 +116,37 @@ namespace ServidorTelnet.Telnet
                                 case Verbos.DONT:
                                 case Verbos.WILL:
                                 case Verbos.WONT:
-                                    var opcao = (Verbos)stream.ReadByte();
+                                    var opcao = (Verbos) stream.ReadByte();
 
                                     if (opcao < 0)
                                         break;
 
-                                    stream.WriteByte((byte)Verbos.IAC);
+                                    stream.WriteByte((byte) Verbos.IAC);
                                     switch (opcao)
                                     {
                                         case Verbos.SGA:
-                                            stream.WriteByte(verbo == Verbos.DO ? (byte)Verbos.WILL : (byte)Verbos.DO);
+                                            stream.WriteByte(verbo == Verbos.DO
+                                                ? (byte) Verbos.WILL
+                                                : (byte) Verbos.DO);
                                             break;
                                         default:
-                                            stream.WriteByte(verbo == Verbos.DO ? (byte)Verbos.WONT : (byte)Verbos.DONT);
+                                            stream.WriteByte(verbo == Verbos.DO
+                                                ? (byte) Verbos.WONT
+                                                : (byte) Verbos.DONT);
                                             break;
                                     }
-                                    stream.WriteByte((byte)opcao);
+
+                                    stream.WriteByte((byte) opcao);
                                     break;
                             }
+
                             break;
                         default:
-                            stringBuilder.Append((char)entrada);
+                            stringBuilder.Append((char) token);
                             break;
                     }
                 }
-            }
-            while (stream.DataAvailable);
+            } while (stream.DataAvailable);
         }
-
-
-        // -------------------------------------------------------------------------------------------------------------------
-        public string ObterCifrao() => Colorido(Cores.Verde, "$: ", true);
-        public string ObterTitulo(string titulo) => $"{ControlCharacters.OSC}{OperatingSystemControls.ChangeWindowTitletoPt};{titulo}{ASCII.BELL}";
-
-        //   ASCII
-        // ESC    1B
-        // BELL   07
-
-        struct ASCII
-        {
-            public const string ESC = "\x1b";
-            public const string BELL = "\x07";
-        }
-
-        struct ControlCharacters
-        {
-            public const string OSC = ASCII.ESC + "]";
-            public const string CSI = ASCII.ESC + "[";
-        }
-
-        struct OperatingSystemControls
-        {
-            public const string ChangeWindowTitletoPt = "2";
-        }
-
-
-        public enum Cores
-        {
-            Preto = 30,
-            Vermelho = 31,
-            Verde = 32,
-            Amarelo = 33,
-            Azul = 34,
-            Magenta = 35,
-            Ciano = 36,
-            Branco = 37
-        }
-
-        public static string Colorido(Cores cor, string mensagem, bool brilho = false) => ControlCharacters.CSI + ((int)cor) + (brilho ? ";1m" : "m") + mensagem + ControlCharacters.CSI + "0m";
     }
 }

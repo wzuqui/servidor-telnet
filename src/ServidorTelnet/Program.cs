@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ServidorTelnet
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
@@ -12,7 +12,7 @@ namespace ServidorTelnet
             CreateHostBuilder(args).Build().Run();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
+        private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureLogging(logging =>
                 {
