@@ -7,7 +7,7 @@ re-utilizar como um projeto no nuget.
 
 ## Tarefas (funcionalidades básicas)
     [x] Criar readme
-    [ ] Criar projeto de TDD
+    [x] Criar projeto de TDD
     [ ] Iniciar implementação do primeiro teste
 
 ## Tarefas (funcionalidades básicas)
