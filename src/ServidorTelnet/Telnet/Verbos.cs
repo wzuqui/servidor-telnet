@@ -1,8 +1,8 @@
 namespace ServidorTelnet.Telnet
 {
-  public enum Verbs
+  public enum Verbos
   {
-    UNKNOWN = -1,
+    DESCONHECIDO = -1,
     SGA = 3,
     WILL = 251,
     WONT = 252,

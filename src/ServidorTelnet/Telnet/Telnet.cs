@@ -87,38 +87,38 @@ namespace ServidorTelnet.Telnet
             {
                 while (stream.DataAvailable)
                 {
-                    var entrada = (Verbs)stream.ReadByte();
+                    var entrada = (Verbos)stream.ReadByte();
                     switch (entrada)
                     {
-                        case Verbs.UNKNOWN:
+                        case Verbos.DESCONHECIDO:
                             break;
-                        case Verbs.IAC:
+                        case Verbos.IAC:
                             cliente.PuTTy = true;
-                            var verbo = (Verbs)stream.ReadByte();
+                            var verbo = (Verbos)stream.ReadByte();
                             switch (verbo)
                             {
-                                case Verbs.UNKNOWN:
+                                case Verbos.DESCONHECIDO:
                                     break;
-                                case Verbs.IAC:
+                                case Verbos.IAC:
                                     stringBuilder.Append(verbo);
                                     break;
-                                case Verbs.DO:
-                                case Verbs.DONT:
-                                case Verbs.WILL:
-                                case Verbs.WONT:
-                                    var opcao = (Verbs)stream.ReadByte();
+                                case Verbos.DO:
+                                case Verbos.DONT:
+                                case Verbos.WILL:
+                                case Verbos.WONT:
+                                    var opcao = (Verbos)stream.ReadByte();
 
                                     if (opcao < 0)
                                         break;
 
-                                    stream.WriteByte((byte)Verbs.IAC);
+                                    stream.WriteByte((byte)Verbos.IAC);
                                     switch (opcao)
                                     {
-                                        case Verbs.SGA:
-                                            stream.WriteByte(verbo == Verbs.DO ? (byte)Verbs.WILL : (byte)Verbs.DO);
+                                        case Verbos.SGA:
+                                            stream.WriteByte(verbo == Verbos.DO ? (byte)Verbos.WILL : (byte)Verbos.DO);
                                             break;
                                         default:
-                                            stream.WriteByte(verbo == Verbs.DO ? (byte)Verbs.WONT : (byte)Verbs.DONT);
+                                            stream.WriteByte(verbo == Verbos.DO ? (byte)Verbos.WONT : (byte)Verbos.DONT);
                                             break;
                                     }
                                     stream.WriteByte((byte)opcao);
