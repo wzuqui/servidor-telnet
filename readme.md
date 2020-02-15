@@ -1,8 +1,8 @@
 ﻿# Servidor Telnet
 
-    Servidor telnet criado em ASPNETCORE 3.1, com propósitos para trabalhar multi-thread com controle de client guid. Os 
+Servidor telnet criado em ASPNETCORE 3.1, com propósitos para trabalhar multi-thread com controle de client guid. Os 
 clientes serão tratados com usabilidade, cores, comandos, tabelas.
-    Nesse projeto quero criar uma nova experiencia de telnet e um ótimo reaproveitamento de código, para posteriormente
+Nesse projeto quero criar uma nova experiencia de telnet e um ótimo reaproveitamento de código, para posteriormente
 re-utilizar como um projeto no nuget.
 
 ## Tarefas (funcionalidades básicas)
