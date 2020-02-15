@@ -1,4 +1,4 @@
-namespace ConsoleAppAsync.Telnet
+namespace ServidorTelnet.Telnet
 {
   public enum Verbs
   {

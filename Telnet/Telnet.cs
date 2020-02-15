@@ -1,9 +1,9 @@
 using System;
 using System.Net.Sockets;
 using System.Text;
-using ConsoleAppAsync.Extensions;
+using ServidorTelnet.Extensions;
 
-namespace ConsoleAppAsync.Telnet
+namespace ServidorTelnet.Telnet
 {
     public abstract class Telnet
     {

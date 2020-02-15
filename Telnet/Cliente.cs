@@ -2,7 +2,7 @@ using System;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace ConsoleAppAsync.Telnet
+namespace ServidorTelnet.Telnet
 {
     public class Cliente : Telnet
     {

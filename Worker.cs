@@ -2,11 +2,11 @@ using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using ConsoleAppAsync.Telnet;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ServidorTelnet.Telnet;
 
-namespace ConsoleAppAsync
+namespace ServidorTelnet
 {
   public class Worker : IHostedService
   {

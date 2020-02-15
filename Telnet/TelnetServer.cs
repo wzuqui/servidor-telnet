@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 
-namespace ConsoleAppAsync.Telnet
+namespace ServidorTelnet.Telnet
 {
     public class TelnetServer : Telnet
     {

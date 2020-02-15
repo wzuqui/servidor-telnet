@@ -3,8 +3,11 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <AssemblyName>ConsoleAppAsync</AssemblyName>
-    <RootNamespace>ConsoleAppAsync</RootNamespace>
+    <PackageId>ServidorTelnet</PackageId>
+    <PackageVersion>0.0.1</PackageVersion>
+    <Authors>ServidorTelnet</Authors>
+    <Company>ServidorTelnet</Company>
+    <Product>ServidorTelnet</Product>
   </PropertyGroup>
 
   <ItemGroup>

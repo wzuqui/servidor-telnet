@@ -1,4 +1,4 @@
-namespace ConsoleAppAsync.Extensions
+namespace ServidorTelnet.Extensions
 {
   public static class StringExtension
   {

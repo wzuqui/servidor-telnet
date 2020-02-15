@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace ConsoleAppAsync
+namespace ServidorTelnet
 {
     public class Program
     {
