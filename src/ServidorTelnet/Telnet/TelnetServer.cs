@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace ServidorTelnet.Telnet
 {
@@ -11,24 +11,20 @@ namespace ServidorTelnet.Telnet
     {
         private TcpListener _tcpListener;
         private Thread _thread;
-        private ILogger _logger;
-        private ConcurrentDictionary<Guid, Cliente> _clientes;
+        private readonly ConcurrentDictionary<Guid, Cliente> _clientes;
 
-        public TelnetServer(ILogger logger)
+        public TelnetServer()
         {
-            _logger = logger;
             _clientes = new ConcurrentDictionary<Guid, Cliente>();
         }
 
-        public bool Iniciar(IPAddress localaddr, int port = 23)
+        public void Iniciar(IPAddress ipAddress, int port = 23)
         {
-            _tcpListener = new TcpListener(localaddr, port);
+            _tcpListener = new TcpListener(ipAddress, port);
             _tcpListener.Start();
 
-            _thread = new Thread(Processar);
-            _thread.IsBackground = true;
+            _thread = new Thread(Processar) {IsBackground = true};
             _thread.Start();
-            return true;
         }
 
         private void Processar()
@@ -49,7 +45,7 @@ namespace ServidorTelnet.Telnet
                 {
                     _clientes.AddOrUpdate(Guid.NewGuid(), guid =>
                     {
-                        var thread = new Thread(new ParameterizedThreadStart(ClienteProcesso))
+                        var thread = new Thread(ClienteProcesso)
                         {
                             IsBackground = true
                         };
@@ -78,7 +74,7 @@ namespace ServidorTelnet.Telnet
             }
         }
 
-        private void TratarComando(Cliente cliente, string comando)
+        private void TratarComando(TelnetClient cliente, string comando)
         {
             cliente.Escrever($"Comando digitado: {comando}");
 
@@ -89,10 +85,18 @@ namespace ServidorTelnet.Telnet
         public void Parar()
         {
             if (_tcpListener != null)
-                try { _tcpListener.Stop(); } catch { }
+                try { _tcpListener.Stop(); }
+                catch
+                {
+                    // ignored
+                }
 
             if (_thread != null)
-                try { _thread.Abort(); } catch { }
+                try { _thread.Abort(); }
+                catch
+                {
+                    // ignored
+                }
 
             DesconectarTodos();
         }
@@ -107,6 +111,11 @@ namespace ServidorTelnet.Telnet
         {
             if (_clientes.TryRemove(clienteGuid, out var cliente))
                 cliente.Desconectar();
+        }
+
+        public Task<TcpClient> AcceptAsync()
+        {
+            return _tcpListener.AcceptTcpClientAsync();
         }
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +17,7 @@ namespace ServidorTelnet
         {
             _logger = logger;
             _appLifetime = appLifetime;
-            _telnetServer = new TelnetServer(_logger);
+            _telnetServer = new TelnetServer();
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
